@@ -28,14 +28,14 @@ task :generate_delicious_requests => :combine_keywords do |t|
 end
 
 desc "Run keyword searches on delicious and get back all the URLS"
-task :get_delicious_urls => :generate_delicious_requests do |t|
+task :get_delicious_urls do |t|
   links = []
   requests = IO.readlines(DELICIOUS_REQUESTS)
   requests.each do |request|
     (1..DELICIOUS_DEPTH).each do |page| 
       body = Nokogiri::HTML(Net::HTTP.get("delicious.com", request.strip.concat("&page=#{page}")))
       xpath_links = body.xpath("//div[@id='content']//a[contains(@class, 'taggedlink')]")
-      links.concat(xpath_links.map{|xpath_link| xpath_link["href"]})
+      links.concat(xpath_links.map{|xpath_link| "#{xpath_link["href"]}\n"})
     end
   end
   File.open(DELICIOUS_URLS, 'w'){|f| f.write(links)}
@@ -44,7 +44,7 @@ end
 desc "Process urls to make them ready to use in the google custom search"
 task :process_urls => :get_delicious_urls do |t|
   delicious_urls = IO.readlines(DELICIOUS_URLS)
-  processed_urls = delicious_urls.map{|delicious_url| delicious_url.sub(/[^\/]*$/, "")}
-  File.open(DELICIOUS_URLS, 'w'){|f| f.write(processed_urls)}
+  processed_urls = delicious_urls.map{|delicious_url| "#{delicious_url.strip.sub(/[^\/]*$/, "")}\n"}
+  File.open(PROCESSED_URLS, 'w'){|f| f.write(processed_urls)}
 end
    
