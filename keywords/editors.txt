@@ -1,0 +1,7 @@
+vim
+emacs
+vi
+textmate
+rubymine
+intellij
+eclipse
