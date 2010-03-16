@@ -11,6 +11,7 @@ DELICIOUS_URLS='tmp/delicious_urls.txt'
 PROCESSED_URLS='tmp/processed_urls.txt'
 DELICIOUS_REQUESTS='tmp/delicious_requests.txt'
 DELICIOUS_DEPTH=1
+ANNOTATION='tmp/programmer_search_annotation.xml'
 
 desc "Combine all delicious keywords for the searches we are going to perform"
 task :combine_keywords do |t|
@@ -48,3 +49,8 @@ task :process_urls => :get_delicious_urls do |t|
   File.open(PROCESSED_URLS, 'w'){|f| f.write(processed_urls)}
 end
    
+desc "Generate annotation file which specifies what sites are included in the search"
+task :generate_annotation => :process_urls do |t|
+  urls = IO.readlines(PROCESSED_URLS)
+  #todo: use erb to generate annotation
+end
