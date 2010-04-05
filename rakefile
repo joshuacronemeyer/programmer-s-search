@@ -1,17 +1,28 @@
 require 'rubygems'
 require 'rake/testtask'
+require 'rake/clean'
 require 'ftools'
 require 'net/http'
 require 'cgi'
 require 'nokogiri'
 require 'ostruct'
 
+CLEAN.include(Rake::FileList["tmp/**"])
+
 COMBINED_KEYWORDS='tmp/combined_keywords.txt'
+
 DELICIOUS_URLS='tmp/delicious_urls.txt'
-PROCESSED_URLS='tmp/processed_urls.txt'
 DELICIOUS_REQUESTS='tmp/delicious_requests.txt'
 DELICIOUS_DEPTH=1
+PROCESSED_URLS='tmp/processed_urls.txt'
+
 ANNOTATION='tmp/programmer_search_annotation.xml'
+ANNOTATION_TEMPLATE="templates/annotations.xml.erb"
+
+CONTEXT='tmp/programmer_search_context.xml'
+CONTEXT_TEMPLATE="templates/context.xml.erb"
+
+SEARCH_LABEL="_cse_programmer_search"
 
 desc "Combine all delicious keywords for the searches we are going to perform"
 task :combine_keywords do |t|
@@ -29,7 +40,7 @@ task :generate_delicious_requests => :combine_keywords do |t|
 end
 
 desc "Run keyword searches on delicious and get back all the URLS"
-task :get_delicious_urls do |t|
+task :get_delicious_urls => :generate_delicious_requests do |t|
   links = []
   requests = IO.readlines(DELICIOUS_REQUESTS)
   requests.each do |request|
@@ -39,6 +50,7 @@ task :get_delicious_urls do |t|
       links.concat(xpath_links.map{|xpath_link| "#{xpath_link["href"]}\n"})
     end
   end
+  #todo: implement blacklist filter
   File.open(DELICIOUS_URLS, 'w'){|f| f.write(links)}
 end
 
@@ -48,9 +60,27 @@ task :process_urls => :get_delicious_urls do |t|
   processed_urls = delicious_urls.map{|delicious_url| "#{delicious_url.strip.sub(/[^\/]*$/, "")}\n"}
   File.open(PROCESSED_URLS, 'w'){|f| f.write(processed_urls)}
 end
-   
+
 desc "Generate annotation file which specifies what sites are included in the search"
-task :generate_annotation => :process_urls do |t|
-  urls = IO.readlines(PROCESSED_URLS)
-  #todo: use erb to generate annotation
+task :generate_annotation do |t|#=> :get_delicious_urls |t|
+  require 'erb'
+  template = IO.read(ANNOTATION_TEMPLATE)
+  xml_maker = ERB.new(template)
+  urls = IO.readlines(DELICIOUS_URLS).map!{|url| url.strip}
+  label = SEARCH_LABEL
+  File.open(ANNOTATION, 'w'){|f| f.write(xml_maker.result binding)}
 end
+
+desc "Generate context file which specifies the search engine"
+task :generate_context do |t|
+  require 'erb'
+  template = IO.read(CONTEXT_TEMPLATE)
+  xml_maker = ERB.new(template)
+  label = SEARCH_LABEL
+  File.open(CONTEXT, 'w'){|f| f.write(xml_maker.result binding)}
+end
+
+desc "Create XML's for our google custom search"
+task :create_search_xmls => [:generate_context, :generate_annotation] do |t|
+end
+
