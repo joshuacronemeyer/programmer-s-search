@@ -1,3 +1,8 @@
-Playing with google custom search.
+This project was intended to use google custom search (gcs) to create a general purpose search engine for programmers.  Vanilla google can be hard to work with sometimes because you have to qualify your search occasionally, for example if I were looking for documentation on ruby or rake or gems then I would have to use search terms like 'ruby programming language' or 'ruby gems' or 'ruby rake'.  But if we had a search engine just for programmers I could just use the specific term.  Another issue is the multitude of annoying websites that mirror mailing lists or have technical information buried in advertisements.  The programmers search would have blacklisted sites like that so I don't waste my time or encourage sites of a similar ilk.
 
-I want to create a custom search appropriate for programming queries that excludes other noise
+It was really just a quick experiment to see how gcs would work.  I created a set of rake tasks that would use del.ici.ous to get sets of highly regarded urls on particular keywords.  The keywords are seeded from a file.  The delicious bookmarks are then parsed and stripped down into workable urls that are inserted into a google annotation xml.  That xml can be uploaded to the google custom search console and voila, you have a search engine.
+
+Outcome???  Fail.
+Explanation: Google limits us to 2000 annotations per file and 5000 annotations per user.  Just with the initial set of keywords I came up with and only using the first page of delicious search results for each keyword I have over 1600 annotations, and for the site to be really useful I would need many times that number.  So until google lets me have more annotations I think this approach won't work.
+
+Next Steps: I could create search engines on the fly for things I'm currently working on.  For example if I am doing ruby work I could create one for ruby.  When I start to hit the 5000 annotation limit I just need to delete one of my search engines to free up space.  I still think 5000 is a pretty limited size for the maximum number of annotations, but whatever.
