@@ -24,6 +24,8 @@ CONTEXT_TEMPLATE="templates/context.xml.erb"
 
 SEARCH_LABEL="_cse_programmer_search"
 
+task :default => :create_search_xmls
+
 desc "Combine all delicious keywords for the searches we are going to perform"
 task :combine_keywords do |t|
   queries = []
@@ -51,6 +53,7 @@ task :get_delicious_urls => :generate_delicious_requests do |t|
     end
   end
   #todo: implement blacklist filter
+  #todo: google restricts us to 2000 sites per annotation file. implement limit.
   File.open(DELICIOUS_URLS, 'w'){|f| f.write(links)}
 end
 
@@ -62,11 +65,11 @@ task :process_urls => :get_delicious_urls do |t|
 end
 
 desc "Generate annotation file which specifies what sites are included in the search"
-task :generate_annotation do |t|#=> :get_delicious_urls |t|
+task :generate_annotation => :process_urls |t|
   require 'erb'
   template = IO.read(ANNOTATION_TEMPLATE)
   xml_maker = ERB.new(template)
-  urls = IO.readlines(DELICIOUS_URLS).map!{|url| url.strip}
+  urls = IO.readlines(PROCESSED_URLS).map!{|url| url.strip}
   label = SEARCH_LABEL
   File.open(ANNOTATION, 'w'){|f| f.write(xml_maker.result binding)}
 end
